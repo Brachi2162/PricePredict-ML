@@ -1,20 +1,21 @@
 # 🏠 PricePredict-ML
 
-פרויקט למידת מכונה (Machine Learning) המשתמש ברגרסיה ליניארית כדי לחזות מחירי נדל"ן על סמך נתונים היסטוריים.
+A Machine Learning project focused on predicting real estate prices using Linear Regression models.
 
-## 📋 מבנה הפרויקט
-כפי שניתן לראות במאגר, הפרויקט מחולק למספר חלקים עיקריים:
-* **Model/**: מכיל את המודל המאומן וקוד המקור של הלוגיקה.
-* **JupyterProject/**: מכיל את קבצי ה-Notebook שבהם התבצע המחקר, ניתוח הנתונים (EDA) והרצת המודל הראשונית.
-* **.idea/**: הגדרות סביבת הפיתוח (PyCharm).
+## 📋 Project Overview
+This project demonstrates an end-to-end ML pipeline, from data exploration to model evaluation, aimed at providing accurate house price estimations based on historical data.
 
-## 🛠 טכנולוגיות
-* **Python**
-* **Scikit-learn**: לבניית מודל הרגרסיה.
-* **Pandas & NumPy**: לניקוי ועיבוד הנתונים.
-* **Matplotlib & Seaborn**: להצגת גרפים וויזואליזציה של הנתונים.
+## 🛠 Tech Stack
+* **Language:** Python
+* **Data Handling:** Pandas, NumPy
+* **Visualization:** Matplotlib, Seaborn
+* **Model Building:** Scikit-Learn
 
-## 🚀 איך להשתמש?
-1. שכפל את המאגר:
+## 📂 Structure
+* `Model/`: Core logic and trained models.
+* `JupyterProject/`: Exploratory Data Analysis (EDA) notebooks.
+
+## 🚀 How to Run
+1. Clone the repo:
    ```bash
    git clone [https://github.com/Brachi2162/PricePredict-ML.git](https://github.com/Brachi2162/PricePredict-ML.git)
