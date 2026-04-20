@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חיזוי מחיר דירה בקליפורניה 🏠</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+        h2 { text-align: center; color: #2c3e50; margin-top: 0; }
+        .input-group { margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #666; font-weight: bold; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 14px; background-color: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 18px; transition: background 0.3s; margin-top: 10px; }
+        button:hover { background-color: #219150; }
+
+        #result { margin-top: 1.5rem; padding: 15px; border-radius: 8px; text-align: center; display: none; border: 1px solid #c8e6c9; background-color: #e8f5e9; }
+        .price { font-size: 28px; font-weight: bold; color: #2e7d32; display: block; margin-top: 5px; }
+
+        .info-box { margin-top: 1.5rem; padding: 15px; background-color: #eef2f7; border-radius: 8px; border-right: 5px solid #3498db; font-size: 14px; color: #34495e; }
+        .info-title { font-weight: bold; color: #2980b9; margin-bottom: 8px; display: block; font-size: 16px; }
+        .feature-list { list-style: none; padding: 0; margin: 0; }
+        .feature-item { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #cbd5e0; padding: 8px 0; }
+
+        /* עיצוב המקור של הנתונים */
+        .source-footer { margin-top: 1.5rem; font-size: 12px; color: #7f8c8d; text-align: center; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>חיזוי מחיר דירה בקליפורניה 🏠</h2>
+
+    <div class="input-group">
+        <label>רמת הכנסה באזור (ביחידות של 10k$):</label>
+        <input type="number" id="median_income" step="0.1" value="10">
+    </div>
+
+    <div class="input-group">
+        <label>גיל הנכס (בשנים):</label>
+        <input type="number" id="housing_median_age" value="1">
+    </div>
+
+    <div class="input-group">
+        <label>סה"כ חדרים בבלוק:</label>
+        <input type="number" id="total_rooms" value="7">
+    </div>
+
+    <button onclick="getPrediction()">חשב מחיר חזוי ₪</button>
+
+    <div id="result">
+        <div>המחיר המוערך לדירה הוא:</div>
+        <span class="price" id="price_value"></span>
+    </div>
+
+    <div id="model_info" class="info-box" style="display:none;">
+        <span class="info-title">💡 ניתוח השפעת המשתנים (בשקלים)</span>
+        <div id="explanation_text" style="margin-bottom: 10px;"></div>
+        <ul id="coeff_list" class="feature-list"></ul>
+    </div>
+
+    <div class="source-footer">
+        החיזוי מבוסס על נתוני מפקד האוכלוסין בקליפורניה משנת 1990.
+    </div>
+</div>
+
+<script>
+    const translations = {
+        'median_income': 'רמת הכנסה באזור',
+        'housing_median_age': 'גיל הנכס',
+        'total_rooms': 'כמות חדרים בבלוק'
+    };
+    const EXCHANGE_RATE = 3.7;
+
+    async function loadModelInfo() {
+        try {
+            const response = await fetch('http://127.0.0.1:8000/info');
+            const data = await response.json();
+
+            if (data) {
+                document.getElementById('model_info').style.display = 'block';
+                const list = document.getElementById('coeff_list');
+                const explanation = document.getElementById('explanation_text');
+
+                const mostImportantHebrew = translations[data.most_important] || data.most_important;
+                explanation.innerHTML = `הגורם המשפיע ביותר על המחיר הוא <strong>${mostImportantHebrew}</strong>.`;
+
+                list.innerHTML = '';
+                for (const [feature, value] of Object.entries(data.model_coefficients)) {
+                    const li = document.createElement('li');
+                    li.className = 'feature-item';
+
+                    const valueInIls = value * EXCHANGE_RATE;
+                    const hebrewName = translations[feature] || feature;
+
+                    li.innerHTML = `
+                        <span>${hebrewName}:</span>
+                        <strong>₪${Math.round(valueInIls).toLocaleString()}</strong>
+                    `;
+                    list.appendChild(li);
+                }
+            }
+        } catch (e) {
+            console.log("לא ניתן לטעון מידע מהשרת.");
+        }
+    }
+
+    loadModelInfo();
+
+    async function getPrediction() {
+        const data = {
+            median_income: parseFloat(document.getElementById('median_income').value),
+            housing_median_age: parseFloat(document.getElementById('housing_median_age').value),
+            total_rooms: parseFloat(document.getElementById('total_rooms').value)
+        };
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.status === "success") {
+                const resultDiv = document.getElementById('result');
+                const priceSpan = document.getElementById('price_value');
+                priceSpan.innerText = "₪" + result.predicted_price_ils.toLocaleString();
+                resultDiv.style.display = 'block';
+            }
+        } catch (error) {
+            alert("שגיאה בחיבור לשרת! וודאי ש-FastAPI רץ.");
+        }
+    }
+</script>
+
+</body>
+</html>
